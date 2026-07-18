@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Syllabus → Calendar</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 700px; margin: 40px auto; padding: 0 16px; color: #222; }
+  h1 { font-size: 1.4rem; }
+  #upload-row { display: flex; gap: 8px; margin-bottom: 20px; }
+  button { cursor: pointer; padding: 8px 14px; border: 1px solid #333; background: #fff; border-radius: 4px; }
+  button:hover { background: #f0f0f0; }
+  button:disabled { opacity: 0.5; cursor: default; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+  th, td { text-align: left; padding: 6px 4px; border-bottom: 1px solid #ddd; }
+  input[type=text], input[type=date] { width: 100%; border: 1px solid #ccc; padding: 4px; border-radius: 3px; box-sizing: border-box; }
+  #status { color: #666; margin-bottom: 12px; }
+  #status.error { color: #b00; }
+  .row-actions { text-align: center; }
+</style>
+</head>
+<body>
+
+<h1>Syllabus → Calendar</h1>
+
+<div id="upload-row">
+  <input type="file" id="file-input" accept="application/pdf">
+  <button id="extract-btn">Extract deadlines</button>
+</div>
+
+<div id="status"></div>
+
+<table id="deadlines-table" style="display: none;">
+  <thead>
+    <tr><th>Title</th><th>Date</th><th>Description</th><th></th></tr>
+  </thead>
+  <tbody id="deadlines-body"></tbody>
+</table>
+
+<button id="add-btn" style="display: none;">+ Add deadline</button>
+<button id="export-btn" style="display: none;">Export .ics</button>
+
+<script>
+const API = "http://localhost:8000";
+
+const fileInput = document.getElementById("file-input");
+const extractBtn = document.getElementById("extract-btn");
+const statusEl = document.getElementById("status");
+const table = document.getElementById("deadlines-table");
+const tbody = document.getElementById("deadlines-body");
+const addBtn = document.getElementById("add-btn");
+const exportBtn = document.getElementById("export-btn");
+
+function setStatus(msg, isError = false) {
+  statusEl.textContent = msg;
+  statusEl.className = isError ? "error" : "";
+}
+
+function addRow(deadline = { title: "", date: "", description: "" }) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="title" value="${deadline.title ?? ""}"></td>
+    <td><input type="date" class="date" value="${deadline.date ?? ""}"></td>
+    <td><input type="text" class="description" value="${deadline.description ?? ""}"></td>
+    <td class="row-actions"><button class="delete-btn">✕</button></td>
+  `;
+  tr.querySelector(".delete-btn").addEventListener("click", () => tr.remove());
+  tbody.appendChild(tr);
+}
+
+function showDeadlines(deadlines) {
+  tbody.innerHTML = "";
+  deadlines.forEach(addRow);
+  table.style.display = deadlines.length ? "table" : "none";
+  addBtn.style.display = "inline-block";
+  exportBtn.style.display = "inline-block";
+}
+
+extractBtn.addEventListener("click", async () => {
+  const file = fileInput.files[0];
+  if (!file) {
+    setStatus("Choose a PDF first.", true);
+    return;
+  }
+
+  extractBtn.disabled = true;
+  setStatus("Extracting deadlines...");
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  try {
+    const res = await fetch(`${API}/extract`, { method: "POST", body: formData });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || `Request failed (${res.status})`);
+    }
+    const deadlines = await res.json();
+    showDeadlines(deadlines);
+    setStatus(`Extracted ${deadlines.length} deadline(s). Review and edit before exporting.`);
+  } catch (e) {
+    setStatus(e.message, true);
+  } finally {
+    extractBtn.disabled = false;
+  }
+});
+
+addBtn.addEventListener("click", () => {
+  addRow();
+  table.style.display = "table";
+});
+
+exportBtn.addEventListener("click", async () => {
+  const rows = [...tbody.querySelectorAll("tr")];
+  const deadlines = rows.map(tr => ({
+    title: tr.querySelector(".title").value,
+    date: tr.querySelector(".date").value,
+    description: tr.querySelector(".description").value || null,
+  }));
+
+  if (deadlines.some(d => !d.title || !d.date)) {
+    setStatus("Every deadline needs a title and a date.", true);
+    return;
+  }
+
+  exportBtn.disabled = true;
+  setStatus("Exporting...");
+
+  try {
+    const res = await fetch(`${API}/export`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deadlines }),
+    });
+    if (!res.ok) throw new Error(`Export failed (${res.status})`);
+
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "deadlines.ics";
+    a.click();
+    URL.revokeObjectURL(url);
+    setStatus("Downloaded deadlines.ics");
+  } catch (e) {
+    setStatus(e.message, true);
+  } finally {
+    exportBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

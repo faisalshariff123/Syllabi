@@ -43,9 +43,9 @@ async def extract(request: Request, file: UploadFile = File(...)) -> list[Deadli
     try:
         return extract_deadlines(pdf_bytes)
     except json.JSONDecodeError:
-        raise HTTPException(status_code=502, detail="LLM returned malformed JSON, try again")
+        raise HTTPException(status_code=502, detail="Shoddy JSON returned, try again...")
     except ValidationError:
-        raise HTTPException(status_code=502, detail="LLM output didn't match the expected deadline format")
+        raise HTTPException(status_code=502, detail="Output didn't match the expected deadline format")
 
 
 @app.post("/export")
