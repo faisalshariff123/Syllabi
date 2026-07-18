@@ -8,7 +8,8 @@ from pydantic import BaseModel
 from pypdf import PdfReader
 
 load_dotenv()
-
+#hi
+print("hi")
 client = OpenAI(
     base_url="https://openrouter.ai/api/v1",
     api_key=os.environ["OPENROUTER_API_KEY"],
