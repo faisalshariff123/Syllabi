@@ -18,7 +18,7 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "https://friendly-malabi-3818eb.netlify.app"],
+    allow_origins=["http://localhost:5173", "https://syllabicalendar.netlify.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
