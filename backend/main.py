@@ -48,6 +48,7 @@ async def extract(request: Request, file: UploadFile = File(...)) -> list[Deadli
         raise HTTPException(status_code=502, detail="Output didn't match the expected deadline format")
 
 print("oops")
+print("test")
 @app.post("/export")
 def export(req: ExportRequest) -> Response:
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0"]
