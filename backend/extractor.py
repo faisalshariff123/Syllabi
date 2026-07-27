@@ -24,7 +24,7 @@ class Deadline(BaseModel):
 
 def extract_text(pdf_bytes: bytes) -> str:
     reader = PdfReader(BytesIO(pdf_bytes))
-    return "\n".join(page.extract_text() for page in reader.pages)
+    return "\n".join(page.extract_text(extraction_mode="layout") for page in reader.pages)
 
 
 def extract_deadlines(pdf_bytes: bytes) -> list[Deadline]:
@@ -32,11 +32,17 @@ def extract_deadlines(pdf_bytes: bytes) -> list[Deadline]:
 
     response = client.chat.completions.create(
         model=os.environ["LLM_MODEL"],
+        temperature=0,
         messages=[
             {
                 "role": "system",
                 "content": (
-                    "Extract every deadline, exam, and due date from this syllabus. "
+                    "You are given the text of an academic document, which may or may not be a syllabus. "
+                    "Extract every deadline, exam, and due date that is EXPLICITLY stated in the text, "
+                    "with an explicit associated date. "
+                    "Do not infer, guess, or invent a date for an item that doesn't have one written down. "
+                    "If the document contains no deadlines (e.g. it's just a class meeting schedule, "
+                    "room list, or has no dates at all), return an empty array. "
                     "Respond with ONLY a JSON array, no other text, matching this shape: "
                     '[{"title": str, "date": "YYYY-MM-DD", "description": str | null}]'
                 ),

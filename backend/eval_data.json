@@ -1,0 +1,22 @@
+[
+  {
+    "pdf": "../Ling 21-83 SU26 schedule .pdf",
+    "expected": [
+      { "date": "2026-07-08", "keywords": ["quiz", "survey", "profile"] },
+      { "date": "2026-07-12", "keywords": ["quiz"] },
+      { "date": "2026-07-15", "keywords": ["quiz", "essay"] },
+      { "date": "2026-07-19", "keywords": ["quiz", "essay"] },
+      { "date": "2026-07-22", "keywords": ["cip", "preview"] },
+      { "date": "2026-07-24", "keywords": ["peer review"] },
+      { "date": "2026-07-26", "keywords": ["quiz", "survey"] },
+      { "date": "2026-07-29", "keywords": ["quiz", "cip"] },
+      { "date": "2026-08-02", "keywords": ["quiz"] },
+      { "date": "2026-08-05", "keywords": ["dp"] },
+      { "date": "2026-08-07", "keywords": ["final"] }
+    ]
+  },
+  {
+    "pdf": "fixtures/no_deadlines.pdf",
+    "expected": []
+  }
+]
