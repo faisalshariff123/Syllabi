@@ -17,11 +17,11 @@ def load_fixture():
         return json.load(f)
 
 
-def score_case(pdf_path: str, expected: list[dict]) -> dict:
+def score_case(pdf_path: str, expected: list[dict], term_start_date: str | None) -> dict:
     with open(pdf_path, "rb") as f:
         pdf_bytes = f.read()
 
-    actual = extract_deadlines(pdf_bytes)
+    actual = extract_deadlines(pdf_bytes, term_start_date=term_start_date)
     actual_by_date = {}
     for d in actual:
         actual_by_date.setdefault(d.date, []).append(d.title.lower())
@@ -57,7 +57,7 @@ def main():
 
     for case in fixture:
         pdf_path = os.path.join(os.path.dirname(__file__), case["pdf"])
-        result = score_case(pdf_path, case["expected"])
+        result = score_case(pdf_path, case["expected"], case.get("term_start_date"))
         all_results.append(result)
 
         print(f"\n{case['pdf']}")

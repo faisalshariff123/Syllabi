@@ -1,6 +1,6 @@
 import json
 
-from fastapi import FastAPI, HTTPException, Request, UploadFile, File
+from fastapi import FastAPI, Form, HTTPException, Request, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel, ValidationError
@@ -35,20 +35,22 @@ def home():
 
 @app.post("/extract")
 @limiter.limit("5/minute")
-async def extract(request: Request, file: UploadFile = File(...)) -> list[Deadline]:
+async def extract(
+    request: Request,
+    file: UploadFile = File(...),
+    term_start_date: str | None = Form(None),
+) -> list[Deadline]:
     if file.content_type != "application/pdf":
         raise HTTPException(status_code=400, detail="File must be a PDF")
 
     pdf_bytes = await file.read()
     try:
-        return extract_deadlines(pdf_bytes)
+        return extract_deadlines(pdf_bytes, term_start_date=term_start_date)
     except json.JSONDecodeError:
         raise HTTPException(status_code=502, detail="Shoddy JSON returned, try again...")
     except ValidationError:
         raise HTTPException(status_code=502, detail="Output didn't match the expected deadline format")
 
-print("oops")
-print("test")
 @app.post("/export")
 def export(req: ExportRequest) -> Response:
     lines = ["BEGIN:VCALENDAR", "VERSION:2.0"]

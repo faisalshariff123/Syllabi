@@ -128,6 +128,7 @@
 <div class="pixel-box">
   <div id="upload-row">
     <input type="file" id="file-input" accept="application/pdf">
+    <input type="date" id="term-start-input" title="Term start date (optional, helps resolve relative dates like 'Week 3 Friday')">
     <button id="extract-btn">Extract</button>
   </div>
 </div>
@@ -152,6 +153,7 @@
 const API = "https://syllabi-git-401311499399.europe-west1.run.app";
 
 const fileInput = document.getElementById("file-input");
+const termStartInput = document.getElementById("term-start-input");
 const extractBtn = document.getElementById("extract-btn");
 const statusEl = document.getElementById("status");
 const wrap = document.getElementById("deadlines-wrap");
@@ -194,6 +196,9 @@ extractBtn.addEventListener("click", async () => {
 
   const formData = new FormData();
   formData.append("file", file);
+  if (termStartInput.value) {
+    formData.append("term_start_date", termStartInput.value);
+  }
 
   try {
     const res = await fetch(`${API}/extract`, { method: "POST", body: formData });

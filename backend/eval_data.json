@@ -1,6 +1,7 @@
 [
   {
     "pdf": "../Ling 21-83 SU26 schedule .pdf",
+    "term_start_date": "2026-07-06",
     "expected": [
       { "date": "2026-07-08", "keywords": ["quiz", "survey", "profile"] },
       { "date": "2026-07-12", "keywords": ["quiz"] },
