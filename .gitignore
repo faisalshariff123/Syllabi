@@ -4,3 +4,8 @@ __pycache__/
 *.pyc
 .DS_Store
 CLAUDE.md
+
+# real syllabi with personal/instructor info - keep private
+/*.pdf
+backend/fixtures/pols_16_81_summer26.pdf
+backend/fixtures/scanned_no_text.pdf
