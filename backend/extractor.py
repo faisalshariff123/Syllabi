@@ -15,10 +15,17 @@ client = OpenAI(
 )
 
 
+MIN_TEXT_CHARS = 50
+
+
 class Deadline(BaseModel):
     title: str
     date: str  # ISO 8601, e.g. "2026-09-15"
     description: str | None = None
+
+
+class NoExtractableTextError(Exception):
+    """Raised when a PDF has no (or near-no) machine-readable text, e.g. a scanned image."""
 
 
 def extract_text(pdf_bytes: bytes) -> str:
@@ -28,6 +35,12 @@ def extract_text(pdf_bytes: bytes) -> str:
 
 def extract_deadlines(pdf_bytes: bytes, term_start_date: str | None = None) -> list[Deadline]:
     text = extract_text(pdf_bytes)
+
+    if len(text.strip()) < MIN_TEXT_CHARS:
+        raise NoExtractableTextError(
+            "No readable text found in this PDF. It may be a scanned image without a "
+            "text layer - try a text-based export of the document instead."
+        )
 
     if term_start_date:
         anchor_instruction = (

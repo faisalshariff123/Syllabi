@@ -21,6 +21,10 @@
     "expected": []
   },
   {
+    "pdf": "fixtures/scanned_no_text.pdf",
+    "expect_error": true
+  },
+  {
     "pdf": "fixtures/pols_16_81_summer26.pdf",
     "term_start_date": "2026-07-06",
     "expected": [

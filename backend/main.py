@@ -8,7 +8,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
-from extractor import Deadline, extract_deadlines
+from extractor import Deadline, NoExtractableTextError, extract_deadlines
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -46,6 +46,8 @@ async def extract(
     pdf_bytes = await file.read()
     try:
         return extract_deadlines(pdf_bytes, term_start_date=term_start_date)
+    except NoExtractableTextError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     except json.JSONDecodeError:
         raise HTTPException(status_code=502, detail="Shoddy JSON returned, try again...")
     except ValidationError:

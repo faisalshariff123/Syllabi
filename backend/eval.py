@@ -8,7 +8,7 @@ import json
 import os
 import unicodedata
 
-from extractor import extract_deadlines
+from extractor import NoExtractableTextError, extract_deadlines
 
 
 def normalize(s: str) -> str:
@@ -22,9 +22,16 @@ def load_fixture():
         return json.load(f)
 
 
-def score_case(pdf_path: str, expected: list[dict], term_start_date: str | None) -> dict:
+def score_case(pdf_path: str, expected: list[dict], term_start_date: str | None, expect_error: bool) -> dict:
     with open(pdf_path, "rb") as f:
         pdf_bytes = f.read()
+
+    if expect_error:
+        try:
+            extract_deadlines(pdf_bytes, term_start_date=term_start_date)
+            return {"expect_error": True, "raised": False}
+        except NoExtractableTextError:
+            return {"expect_error": True, "raised": True}
 
     actual = extract_deadlines(pdf_bytes, term_start_date=term_start_date)
     actual_by_date = {}
@@ -47,6 +54,7 @@ def score_case(pdf_path: str, expected: list[dict], term_start_date: str | None)
     extra = sorted(set(actual_by_date) - expected_dates)
 
     return {
+        "expect_error": False,
         "total_expected": len(expected),
         "matched": len(matched),
         "missed_dates": missed,
@@ -62,11 +70,16 @@ def main():
 
     for case in fixture:
         pdf_path = os.path.join(os.path.dirname(__file__), case["pdf"])
-        result = score_case(pdf_path, case["expected"], case.get("term_start_date"))
+        result = score_case(
+            pdf_path, case.get("expected", []), case.get("term_start_date"), case.get("expect_error", False)
+        )
         all_results.append(result)
 
         print(f"\n{case['pdf']}")
-        if result["total_expected"] == 0:
+        if result["expect_error"]:
+            print("  PASS: raised NoExtractableTextError as expected" if result["raised"]
+                  else "  FAIL: did not raise NoExtractableTextError on unreadable PDF")
+        elif result["total_expected"] == 0:
             if result["raw_count"] == 0:
                 print("  PASS: no deadlines in source, none hallucinated")
             else:
@@ -83,15 +96,18 @@ def main():
             if result["extra_dates"]:
                 print(f"  extra (unlabeled) dates: {result['extra_dates']}")
 
-    scored = [r for r in all_results if r["total_expected"] > 0]
+    scored = [r for r in all_results if not r["expect_error"] and r["total_expected"] > 0]
     total_matched = sum(r["matched"] for r in scored)
     total_expected = sum(r["total_expected"] for r in scored)
     hallucination_fails = sum(
-        1 for r in all_results if r["total_expected"] == 0 and r["raw_count"] > 0
+        1 for r in all_results if not r["expect_error"] and r["total_expected"] == 0 and r["raw_count"] > 0
     )
+    error_fails = sum(1 for r in all_results if r["expect_error"] and not r["raised"])
     print(f"\n=== overall recall: {total_matched}/{total_expected} ({total_matched/total_expected:.0%}) ===")
     if hallucination_fails:
         print(f"=== {hallucination_fails} hallucination-on-empty-input failure(s) ===")
+    if error_fails:
+        print(f"=== {error_fails} unreadable-PDF guard failure(s) ===")
 
 
 if __name__ == "__main__":
