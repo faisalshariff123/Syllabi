@@ -6,8 +6,13 @@
 
 import json
 import os
+import unicodedata
 
 from extractor import extract_deadlines
+
+
+def normalize(s: str) -> str:
+    return unicodedata.normalize("NFKD", s)
 
 FIXTURE_PATH = os.path.join(os.path.dirname(__file__), "eval_data.json")
 
@@ -24,7 +29,7 @@ def score_case(pdf_path: str, expected: list[dict], term_start_date: str | None)
     actual = extract_deadlines(pdf_bytes, term_start_date=term_start_date)
     actual_by_date = {}
     for d in actual:
-        actual_by_date.setdefault(d.date, []).append(d.title.lower())
+        actual_by_date.setdefault(d.date, []).append(normalize(d.title.lower()))
 
     matched, missed, wrong_title = [], [], []
     for exp in expected:

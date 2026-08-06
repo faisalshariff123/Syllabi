@@ -19,5 +19,19 @@
   {
     "pdf": "fixtures/no_deadlines.pdf",
     "expected": []
+  },
+  {
+    "pdf": "fixtures/pols_16_81_summer26.pdf",
+    "term_start_date": "2026-07-06",
+    "expected": [
+      { "date": "2026-07-08", "keywords": ["power"] },
+      { "date": "2026-07-10", "keywords": ["authority"] },
+      { "date": "2026-07-17", "keywords": ["democracy"] },
+      { "date": "2026-07-24", "keywords": ["imperialism"] },
+      { "date": "2026-07-27", "keywords": ["reflection"] },
+      { "date": "2026-07-31", "keywords": ["social control"] },
+      { "date": "2026-08-05", "keywords": ["future prospects"] },
+      { "date": "2026-08-07", "keywords": ["port huron"] }
+    ]
   }
 ]
