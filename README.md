@@ -23,4 +23,3 @@ PDF -> pull text out with pypdf -> LLM pulls out dates as JSON (extractor.py)
 2. **Extract and export are two separate steps.** You get to check and fix things before it exports.
 
 
-**One thing I know needs fixing:** title matching right now is just greedy fuzzy matching, so it can mix up stuff like "Final project" and "Final exam" if they're close enough.
