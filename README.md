@@ -1,4 +1,4 @@
-# Syllabus to Calendar
+# Syllabi
 
 Takes a syllabus PDF and spits out an .ics file with every deadline and exam in it, ready to import into your calendar.
 
