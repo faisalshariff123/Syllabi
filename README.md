@@ -3,7 +3,7 @@
 Takes a syllabus PDF and spits out an .ics file with every deadline and exam in it, ready to import into your calendar.
 
 This isn't just an LLM wrapper. The actual point of the project is the eval harness that checks if the extraction is even accurate, plus a manual confirm step before anything gets exported because no extractor is perfect and I'm not pretending otherwise.
-
+https://syllabicalendar.netlify.app
 ## How it flows
 
 ```
